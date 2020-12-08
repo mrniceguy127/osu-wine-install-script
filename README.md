@@ -35,4 +35,4 @@ I've included an example script in this repo that launches osu along with the ri
 
 > Running /usr/bin/wineserver -w. This will hang until all wine processes in prefix=/home/user/osu-wine terminate
 
-Winetricks got stuck here forever multiple times while installing fonts. I never found out if it was ever able to complete. I ended up just doing this in a separate terminal everytime it got stuck: `WINEPREFIX="$HOME/osu-wine" wineserver -k`.
+Winetricks got stuck here forever multiple times while installing the dotnet runtime. I never found out if it was ever able to complete. I ended up just doing this in a separate terminal everytime it got stuck: `WINEPREFIX="$HOME/osu-wine" wineserver -k`.
