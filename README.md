@@ -1,6 +1,6 @@
 # osu-wine-install-script
 
-Yet another osu-wine installer! This one basically just goes through the steps listed [here](https://osu.ppy.sh/community/forums/topics/367783) with the exception of the optional Japanese fonts fix.
+An osu! wine installer! This one basically just goes through the steps listed [here](https://osu.ppy.sh/community/forums/topics/367783) with the exception of the optional Japanese fonts fix.
 
 # Instructions
 
