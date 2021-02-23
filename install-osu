@@ -1,167 +1,270 @@
 #!/bin/bash
 
 
-#set -e # play it safe      # Causes problems apparently...
-
-echo "ROOT IS REQUIRED TO ADD OSU TO /usr/bin and /usr/share"
-sudo echo "Thanks!"
-
-if [[ $? != 0 ]] ; then
-  exit
-fi
-
 TMP_DIR="/tmp/osu-wine"
-mkdir -p "$TMP_DIR"
-cd "$TMP_DIR" # Create tmp files here.
+
+OSU_SCRIPTS_INSTALL_DIR="$HOME/.local/bin"
+OSU_LAUNCH_SCRIPT_NAME="osu-wine"
+OSU_KILL_SCRIPT_NAME="osu-wine"
+OSU_WINE_DIR="$HOME/.local/share/osu-wine"
+OSU_GAME_FILES_DIR="$OSU_WINE_DIR/osu"
+OSU_GAME_FILES_DIR_SYMLINK_LOCATION="$HOME/osu"
+
+WINE_INSTALL_DIR="$OSU_WINE_DIR/wine-osu"
+
+WINE_RICH_PRESENCE_PATCH_SOURCE='https://github.com/0e4ef622/wine-discord-ipc-bridge/releases/download/v0.0.1/winediscordipcbridge.exe'
+WINE_RICH_PRESENCE_PATCH_DIR="$OSU_WINE_DIR/wine-discord-ipc-bridge"
+WINE_RICH_PRESENCE_PATCH_BINARY_NAME="winediscordipcbridge.exe"
+
+# Sources
+# Source link is from ThePoon's Discord Server Pins: https://discord.com/channels/209933203782369281/457310786994307073/700594232292802590
+WINE_BINARY_SOURCE="https://5124.mywire.org/HDD/Downloads/wine-osu-4.13-1-x86_64.pkg.tar.xz"
+WINE_BINARY_DOWNLOAD_NAME="wine-osu-4.13-1-x86_64.pkg.tar.xz"
+WINE_BINARY_MD5_SUM="af08568c9580d43eebc7c62ddf795925  $WINE_BINARY_DOWNLOAD_NAME"
+WINE_BINARY_SHA_256_SUM="42d4ccbe7a8057d2b89d8c9b7aa6bd5baffc1e59498c1dad0d17ef90b36616b4  $WINE_BINARY_DOWNLOAD_NAME"
+
+
+export WINEARCH=win32
+export WINEPREFIX="$OSU_WINE_DIR/WINE.win32"
+export WINE="$WINE_INSTALL_DIR/bin/wine"
+export WINESERVER="$WINE_INSTALL_DIR/bin/wineserver"
+export WINETRICKS="winetricks"
+
+OSU_DEFAULT_INSTALL_DIR="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!"
+OSU_USER_CONFIG="$OSU_GAME_FILES_DIR/osu!.schwi.cfg"
+
 
 # Styling
-BORDER="========================================================================"
 
-print_sect () {
-  echo $BORDER
-  echo "$1"
-  echo $BORDER
+log() {
+  echo -e "\033[;32mOSU INSTALL SCRIPT - LOG: $@\033[0m"
 }
 
-print_sect "ATTENTION: THIS SCRIPT ASSUMES WINE AND WINETRICKS ARE ALREADY INSTALLED"
+error() {
+  echo -e "\033[;31mOSU INSTALL SCRIPT - ERROR: $@\033[0m"
+}
+
+print_sect () {
+  BORDER="========================================================================"
+
+  log $BORDER
+  log "$1"
+  log $BORDER
+}
+
+# Main
+
+check_for_command_exit_if_missing() {
+  CMD=$1
+  if ! command -v $CMD &> /dev/null ; then
+      error "$CMD not found. Please install it."
+      exit 1
+  fi
+}
+
+check_requirements() {
+  print_sect "Checking that requirements are met..."
+  log "Checking if winetricks is installed..."
+  check_for_command_exit_if_missing $WINETRICKS
+}
+
+pre_install() {
+  check_requirements
+  mkdir -p "$TMP_DIR"
+  mkdir -p "$OSU_WINE_DIR"
+  cd "$TMP_DIR" # Create tmp files here.
+}
+
+validate_md5_integrity() {
+  CORRECT_MD5_SUM="$1"
+
+  log "Validating md5..."
+  echo "$WINE_BINARY_MD5_SUM" | md5sum -c
+  if [[ $? == 0 ]] ; then
+    log "Successfully validated md5 sum."
+  else
+    error "Failed to validate md5 sum! Exiting."
+    error "Expected: $WINE_BINARY_MD5_SUM"
+    error "Computed: $FOREIGN_MD5_SUM"
+    exit 1
+  fi
+}
 
 
+validate_sha_256_integrity() {
+  CORRECT_SHA_256_SUM="$1"
 
-# Wine environ
-if [[ ! -n "$WINEPREFIX" ]] ; then
-  export WINEPREFIX="$HOME/osu-wine"
-fi
-if [[ ! -n "$WINE" ]] ; then
-  export WINE="wine"
-fi
-if [[ ! -n "$WINESERVER" ]] ; then
-  export WINESERVER="wineserver"
-fi
-if [[ ! -n "$WINETRICKS" ]] ; then
-  export WINETRICKS="winetricks"
-fi
-if [[ ! -n "$WINECFG" ]] ; then
-  export WINECFG="winecfg"
-fi
+  log "Validating sha256..."
+  echo "$WINE_BINARY_SHA_256_SUM" | sha256sum -c
+  if [[ $? == 0 ]] ; then
+    log "Successfully validated sha256 sum."
+  else
+    error "Failed to validate sha256 sum! Exiting."
+    error "Expected: $WINE_BINARY_SHA_256_SUM"
+    error "Computed: $FOREIGN_SHA_256_SUM"
+    exit 1
+  fi
+}
+
+
+# Note, this is installing a pre-compiled binary
+install_wine() {
+  print_sect "Installing ThePoon's Wine..."
+  if [[ -e "$WINE_INSTALL_DIR" ]] ; then
+    log "Skipping installation of ThePoon's wine. Is it already installed?"
+  else
+    if [[ ! -f "$WINE_BINARY_DOWNLOAD_NAME" ]] ; then
+      wget "$WINE_BINARY_SOURCE" -O "$WINE_BINARY_DOWNLOAD_NAME"
+    else
+      log "Skipping download, file exists."
+    fi
+
+    # Source validation
+    log "Validating source integrity..."
+    validate_md5_integrity "$WINE_BINARY_MD5_SUM"
+    validate_sha_256_integrity "$WINE_BINARY_SHA_256_SUM"
+
+    log "Installing ThePoon's wine to $WINE_INSTALL_DIR..."
+    tar -xf "$WINE_BINARY_DOWNLOAD_NAME"
+    mv "$PWD/opt/wine-osu" "$WINE_INSTALL_DIR"
+
+    log "Successfully installed ThePoon's wine!"
+    rm "$WINE_BINARY_DOWNLOAD_NAME"
+  fi
+}
+
+setup_prefix() {
+  mkdir -p "$WINEPREFIX"
+  print_sect "Creating WINEPREFIX..."
+  $WINETRICKS --force dotnet462
+  $WINETRICKS -q cjkfonts gdiplus
+}
+
+fix_osu_user_config() {
+  log "Fixing audio compatibility..."
+
+  MOVED_USER_CONFIG="$OSU_GAME_FILES_DIR/tmp"
+  BAD_AUDIO_COMPATIBILITY_SETTING="AudioCompatibility = 0"
+  GOOD_AUDIO_COMPATIBILITY_SETTING="AudioCompatibility = 1"
+
+  mv "$OSU_USER_CONFIG" "$MOVED_USER_CONFIG"
+
+  while read line ; do
+    if [[ "$line" == "$BAD_AUDIO_COMPATIBILITY_SETTING"* ]] ; then
+      echo "$GOOD_AUDIO_COMPATIBILITY_SETTING" >> $OSU_USER_CONFIG
+    else
+      echo "${line%}" >> $OSU_USER_CONFIG
+    fi
+  done < $MOVED_USER_CONFIG
+}
+
+create_osu_sym_links() {
+  log "Creating handy osu symlinks..."
+  mv "$OSU_DEFAULT_INSTALL_DIR" "$OSU_GAME_FILES_DIR"
+  if [[ -e "$OSU_DEFAULT_INSTALL_DIR" ]] ; then
+    rm "$OSU_DEFAULT_INSTALL_DIR"
+  fi
+  if [[ -e "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION" ]] ; then
+    rm "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION"
+  fi
+  ln -sv "$OSU_GAME_FILES_DIR" "$OSU_DEFAULT_INSTALL_DIR"
+  ln -sv "$OSU_GAME_FILES_DIR" "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION"
+}
+
+install_osu() {
+  print_sect "osu! installer step. PLEASE CLOSE OSU WHEN LAUNCHED."
+
+  if [[ -e "osu!install.exe" ]]; then
+    log "osu! installer already downloaded!"
+  else
+    # osu! Installer
+    wget 'https://m1.ppy.sh/r/osu!install.exe'
+  fi
+
+  "$WINE" "osu!install.exe" &> /dev/null &
+  OSU_INSTALLER_PID=$!
+
+  wait $OSU_INSTALLER_PID
+  log "Installer finished, just tweaking some more stuff..."
+  create_osu_sym_links
+
+  # I could NOT find a way to deal with this race condition without this stupid work around.
+  while [[ ! -e "$OSU_USER_CONFIG" ]] ; do
+    sleep 10
+    if [[ ! -e "$OSU_USER_CONFIG" ]] ; then
+      $WINE "$OSU_GAME_FILES_DIR/osu!.exe" &> /dev/null
+    fi
+  done
+  fix_osu_user_config
+}
+
+download_discord_rich_presence_patch() {
+  mkdir -p "$WINE_RICH_PRESENCE_PATCH_DIR"
+  wget "$WINE_RICH_PRESENCE_PATCH_SOURCE" -O "$WINE_RICH_PRESENCE_PATCH_DIR/$WINE_RICH_PRESENCE_PATCH_BINARY_NAME"
+}
+
+create_osu_launch_script() {
+  LAUNCH_SCRIPT=osu-wine
+  cat > $LAUNCH_SCRIPT << "EOF"
+#!/bin/sh
+
+
+export vblank_mode=0
+
+# You need to make these as low as you can get them where osu!'s audio is still stable!!
+# This varies by machine.
+export STAGING_AUDIO_DURATION=100000
+export STAGING_AUDIO_PERIOD=50000
+
 export WINEARCH=win32
-
-
-
-# COMMANDS
-WINETRICKS_CREATE_PREFIX="$WINETRICKS -q dotnet462 cjkfonts gdiplus"
-WINETRICKS_ALSA="$WINETRICKS sound=alsa"
-
-# Create wineprefix
-print_sect "CREATING WINEPREFIX"
-$WINETRICKS_CREATE_PREFIX
-
-
-# Manual winecfg step
-print_sect "MANUAL STEP"
-echo "> \"navigate to graphics and ensure that "allow the window manager to decorate the windows" and "allow the window manager to control the windows" are enabled. this can allow native fullscreen to work which can help performance on bloated desktop environments like gnome\""
-echo "See https://osu.ppy.sh/community/forums/topics/367783"
-
-"$WINECFG"
-
-print_sect "ALSA"
-
-if [[ "$ALSATWEAK" == "true" ]]; then
-  $WINETRICKS_ALSA
-else
-  echo "SKIPPING ALSA TWEAK"
-fi
-
-
-# dsound tweak
-print_sect "dsound tweak"
-cat > dsound.reg << "EOF"
-
-Windows Registry Editor Version 5.00
-
-
-[HKEY_CURRENT_USER\Software\Wine\DirectSound]
-
-"HelBuflen"="512"
-
-"SndQueueMax"="3"
-
 EOF
 
-"$WINE" regedit dsound.reg
+  echo "export WINEPREFIX=$WINEPREFIX" >> $LAUNCH_SCRIPT
+  echo "export WINE=$WINE" >> $LAUNCH_SCRIPT
+  echo "" >> $LAUNCH_SCRIPT
+  echo "\$WINE $WINE_RICH_PRESENCE_PATCH_DIR/$WINE_RICH_PRESENCE_PATCH_BINARY_NAME &" >> $LAUNCH_SCRIPT
+  echo "\$WINE $OSU_GAME_FILES_DIR/osu!.exe" >> $LAUNCH_SCRIPT
 
-print_sect "osu! installer step. PLEASE CLOSE OSU WHEN LAUNCHED."
-# osu! Installer
+  chmod +x $LAUNCH_SCRIPT
 
-if [[ -e "osu!install.exe" ]]; then
-  echo "osu! installer already downloaded!"
-else
-  wget 'https://m1.ppy.sh/r/osu!install.exe'
-fi
+  mv $LAUNCH_SCRIPT $OSU_SCRIPTS_INSTALL_DIR
+}
 
-"$WINE" "osu!install.exe"
-
-
-print_sect "POST INSTALL STEPS"
-# Post install
-OSU_SC_PATH="$HOME/osu"
-
-if [[ ! -e $OSU_SC_PATH ]] ; then
-  ln -sv "$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!" "$OSU_SC_PATH"
-  echo "Created osu! folder shortcut in current user's home."
-fi
-
-# Launch script
-
-print_sect "REQUESTING ROOT ACCESS TO ADD OSU TO /usr/bin"
-
-cat > osu << "EOF"
+create_osu_kill_script() {
+  KILL_SCRIPT=osu-kill
+  cat > $KILL_SCRIPT << "EOF"
 #!/bin/sh
 
 
 export vblank_mode=0
 
 export WINEARCH=win32
-
 EOF
 
-echo "export WINEPREFIX=\"$WINEPREFIX\""  >> osu
-echo "\"$WINE\" \"$WINEPREFIX/drive_c/users/\$USER/Local Settings/Application Data/osu!/osu!.exe\" \"\$@\"" >> osu
+  echo "export WINEPREFIX=\"$WINEPREFIX\"" >> $KILL_SCRIPT
+  echo "export WINESERVER=\"$WINESERVER\"" >> $KILL_SCRIPT
+  echo "\$WINESERVER -k" >> $KILL_SCRIPT
 
+  chmod +x $KILL_SCRIPT
 
-sudo mv osu /usr/bin/osu
-sudo chmod +x /usr/bin/osu
+  mv $KILL_SCRIPT $OSU_SCRIPTS_INSTALL_DIR
+}
 
+create_osu_scripts() {
+  print_sect "Creating launch and kill scripts..."
+  create_osu_launch_script
+  create_osu_kill_script
+}
 
+create_desktop_file() {
+  ICONS_DIR="$HOME/.local/share/icons"
+  DESKTOP_FILE_DIR="$HOME/.local/share/applications/"
+  DESKTOP_FILE_NAME="osu-wine.desktop"
+  OSU_LOGO_URL="https://i.ppy.sh/916068c8e2d5f90be7766da5ce0ee7a7ea6c99b3/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f4272616e645f6964656e746974795f67756964656c696e65732f696d672f75736167652d66756c6c2d636f6c6f75722e706e67"
 
-# Kill script
-cat > osukill << "EOF"
-#!/bin/sh
+  wget "$OSU_LOGO_URL" -O "$ICONS_DIR/osulogo.png"
 
-
-export vblank_mode=0
-
-export WINEARCH=win32
-
-EOF
-
-echo "export WINEPREFIX=\"$WINEPREFIX\"" >> osukill
-echo "\"$WINESERVER\" -k" >> osukill
-
-
-sudo mv osukill /usr/bin/osukill
-sudo chmod +x /usr/bin/osukill
-
-
-
-print_sect "REQUESTING ROOT ACCESS TO ADD OSU DESKTOP FILE TO /usr/share"
-
-# Desktop file
-
-OSU_LOGO_URL="https://i.ppy.sh/916068c8e2d5f90be7766da5ce0ee7a7ea6c99b3/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f4272616e645f6964656e746974795f67756964656c696e65732f696d672f75736167652d66756c6c2d636f6c6f75722e706e67"
-
-sudo wget "$OSU_LOGO_URL" -O "/usr/share/icons/osulogo.png"
-
-cat > "osu!.desktop" << "EOF"
+cat > $DESKTOP_FILE_NAME << "EOF"
 [Desktop Entry]
 
 Encoding=UTF-8
@@ -172,27 +275,62 @@ Comment=A free-to-win rhythm game. Rhythm is just a click away!
 
 Type=Application
 
-Exec=osu %F
+Exec=osu-wine %F
 
 Icon=osulogo
 
 StartupWMClass=osu!.exe
 
-Categories=
+Categories=Games
 
 EOF
 
-sudo mv "osu!.desktop" "/usr/share/applications"
-sudo chmod +x "/usr/share/applications/osu!.desktop"
+  mv $DESKTOP_FILE_NAME "$DESKTOP_FILE_DIR"
+  chmod +x "$DESKTOP_FILE_DIR/$DESKTOP_FILE_NAME"
 
 
+}
+
+apply_dsound_tweak() {
+  print_sect "Applying dsound tweak..."
+  cat > dsound.reg << "EOF"
+Windows Registry Editor Version 5.00
+[HKEY_CURRENT_USER\Software\Wine\DirectSound]
+"HelBuflen"="512"
+"SndQueueMax"="3"
+EOF
+
+  "$WINE" regedit dsound.reg
+  rm dsound.reg
+}
+
+cleanup() {
+  cd ..
+  rm -r "$TMP_DIR"
+}
+
+install() {
+  print_sect "Installing... DO NOT install mono when asked."
+
+  pre_install
+  install_wine
+  setup_prefix
+  apply_dsound_tweak
+  install_osu
+  download_discord_rich_presence_patch
+  create_osu_scripts
+  create_desktop_file
+  cleanup
 
 
+  print_sect "Finished! Please report any issues with this script at https://github.com/mrniceguy127/osu-wine-install-script"
+  
+  print_sect "WARNING: YOU *****MUST***** EDIT THE osu-wine LAUNCH SCRIPT FOR LATENCY ADJUSTMENTS!! IF YOU DON'T, YOU MAY EXPERIENCE SEVERE AUDIO INSTABILITY!!! THESE VALUES VARY BY MACHINE AND IT IS UP TO YOU TO EXPERIMENT!!! THIS FILE CAN BE FOUND AT '~/.local/bin/osu-wine'"
+  log "Run 'osu-wine' to launch osu! Or, launch it from an application launcher."
+}
 
-# Cleanup
-cd /tmp
-rm -r "$TMP_DIR"
+main() {
+  install
+}
 
-
-# Finished!
-print_sect "Finished! Please report any issues with this script at https://github.com/mrniceguy127/osu-wine-install-script"
+main
