@@ -31,7 +31,7 @@ export WINESERVER="$WINE_INSTALL_DIR/bin/wineserver"
 export WINETRICKS="winetricks"
 
 OSU_DEFAULT_INSTALL_DIR="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!"
-OSU_USER_CONFIG="$OSU_GAME_FILES_DIR/osu!.schwi.cfg"
+OSU_USER_CONFIG="$OSU_GAME_FILES_DIR/osu!.$USER.cfg"
 
 
 # Styling
