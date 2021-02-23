@@ -21,7 +21,7 @@ If you run into any problems with this, please open an issue!
 
 1. `git clone https://github.com/mrniceguy127/osu-wine-install-script.git && cd osu-wine-install-script`
 2. `./install-osu` Let osu! launch and close on its own. When osu launches to the main menu, close it. Even if it happens multiple times (extremely rare).
-3. **IMPORTANT!!!** - Edit the script at `~/.local/bin/osu-wine` to adjust latency settings. You should set these values (see comments in file) as low as you can where osu!'s audio is still stable. These values vary by machine. If you don't do this, you will end up with severe audio instability or more latency than you could be getting.
+3. **IMPORTANT!!!** - Edit the script at `~/.local/bin/osu-wine` to adjust latency settings. You should set these values (see comments in file) as low as you can where osu!'s audio is still stable. These values vary by machine. If you don't do this, you will end up with severe audio instability or more latency than you could be getting. See [ThePoon's blog post](https://blog.thepoon.fr/osuLinuxAudioLatency/) on this.
 4. Launch osu. You can either type `osu-wine` in a new terminal, or if you like GUI's, you can just search "osu" in whatever application launcher you might have. Use the command `osu-kill` to force kill osu!.
 
 # Sources
