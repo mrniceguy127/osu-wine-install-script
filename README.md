@@ -1,6 +1,8 @@
 # osu-wine-install-script
 
-A complete re-write of my old osu! installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)). It:
+A complete re-write of my old osu! installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)).
+
+It:
 
 - Installs osu!
 - Installs the [wine-discord-ipc-bridge](https://github.com/0e4ef622/wine-discord-ipc-bridge)
