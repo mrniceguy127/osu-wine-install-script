@@ -9,6 +9,7 @@ It:
 - Installs [ThePoon's patched wine](https://blog.thepoon.fr/osuLinuxAudioLatency/) with a pre-compiled wine binary
 - Generates a launch script to launch osu! with all of these patches
 - Creates a desktop file to launch osu! with the generated launch script
+- Never requires root privileges.
 
 If you run into any problems with this, please open an issue!
 
