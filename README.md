@@ -1,6 +1,6 @@
 # osu-wine-install-script
 
-A complete re-write of my old osu! installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)).
+A complete re-write of my old osu! wine installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)).
 
 It:
 
