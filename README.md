@@ -49,3 +49,7 @@ If you run into any problems with this, please open an issue!
 - `osu-wine` command not found after installation.
   - Solution #1: Make sure you opened a new terminal after running the install script.
   - Solution #2: Make sure ~/.local/bin is in your `$PATH`.
+
+- osu! simply doesn't work
+  - Solution #1: Install the dependencies listed [here](https://github.com/lutris/docs/blob/master/WineDependencies.md). These dependencies are used for gaming on Linux in general, so they're nice to have anyway.
+  - Solution #2: Please create an issue ticket.
