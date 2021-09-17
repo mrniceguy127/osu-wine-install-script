@@ -252,6 +252,7 @@ EOF
 
 create_osu_scripts() {
   print_sect "Creating launch and kill scripts..."
+  mkdir -p "$OSU_SCRIPTS_INSTALL_DIR"
   create_osu_launch_script
   create_osu_kill_script
 }
