@@ -10,12 +10,14 @@ It:
 - Generates a launch script to launch osu! with all of these patches
 - Creates a desktop file to launch osu! with the generated launch script
 - Automatically enables audio compatibility in osu! upon installation.
+- Does not require root privileges. The only things that require root are manual system configurations noted in the installation instructions below.
 
 If you run into any problems with this, please open an issue!
 
 # Requirements
 
 - winetricks
+- Install the dependencies listed [here](https://github.com/lutris/docs/blob/master/WineDependencies.md). These dependencies are used for gaming on Linux through wine in general, so they're nice to have anyway.
 
 # Instructions
 
@@ -51,5 +53,7 @@ If you run into any problems with this, please open an issue!
   - Solution #2: Make sure ~/.local/bin is in your `$PATH`.
 
 - osu! simply doesn't work
-  - Solution #1: Install the dependencies listed [here](https://github.com/lutris/docs/blob/master/WineDependencies.md). These dependencies are used for gaming on Linux using wine in general, so they're nice to have anyway.
-  - Solution #2: Please create an issue ticket.
+  - Solution #1: Please create an issue ticket.
+
+- These instructions are hard to understand!
+  - Solution #1: Feel free to open an issue ticket about this and I'll be happy to help / make changes to this README.
