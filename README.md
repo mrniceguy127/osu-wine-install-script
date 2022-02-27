@@ -29,7 +29,7 @@ If you run into any problems with this, please open an issue!
 
 # Sources
 
-- Pre-compiled wine binary with ThePoon's patch applied and a prebuilt wine prefix. You can find this [here](https://github.com/mrniceguy127/osu-wine-binary-and-prefix-generator/releases/download/7.0-02262022/wine-bin-and-prefix.tar.gz)
+- Pre-compiled wine binary with ThePoon's patch applied and a prebuilt wine prefix. The source for the binary and wine prefix can be found on one of my other repositories [here](https://github.com/mrniceguy127/osu-wine-binary-and-prefix-generator). You can diectly download the binary and wine prefix [here](https://github.com/mrniceguy127/osu-wine-binary-and-prefix-generator/releases/download/7.0-02262022/wine-bin-and-prefix.tar.gz)
 - Official osu! branding icon - [Link](https://i.ppy.sh/916068c8e2d5f90be7766da5ce0ee7a7ea6c99b3/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f4272616e645f6964656e746974795f67756964656c696e65732f696d672f75736167652d66756c6c2d636f6c6f75722e706e67)
 - wine-discord-ipc-bridge - [Link](https://github.com/0e4ef622/wine-discord-ipc-bridge/releases/download/v0.0.1/winediscordipcbridge.exe)
 - Official osu! installer - [Link](https://m1.ppy.sh/r/osu!install.exe)
