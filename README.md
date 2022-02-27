@@ -1,22 +1,22 @@
 # osu-wine-install-script
 
-A complete re-write of my old distro-agnostic osu! wine installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)).
+A (a comparatively very fast) complete re-write of my old distro-agnostic osu! wine installer (now on branch [old](https://github.com/mrniceguy127/osu-wine-install-script/tree/old)).
 
 It:
 
 - Installs osu!
 - Installs the [wine-discord-ipc-bridge](https://github.com/0e4ef622/wine-discord-ipc-bridge)
-- Installs [ThePoon's patched wine](https://blog.thepoon.fr/osuLinuxAudioLatency/) with a pre-compiled wine binary
+- Installs [ThePoon's patched wine](https://blog.thepoon.fr/osuLinuxAudioLatency/) with a pre-compiled wine binary (to drastocally increase install time)
+- Installs a prebuilt wine prefix (to also drastically increase install time)
 - Generates a launch script to launch osu! with all of these patches
 - Creates a desktop file to launch osu! with the generated launch script
-- Automatically enables audio compatibility in osu! upon installation.
-- Does not require root privileges. The only things that require root are manual system configurations noted in the installation instructions below.
+- Automatically enables audio compatibility in osu! upon installation
+- Does not require root privileges. The only things that require root are manual system configurations noted in the installation instructions below
 
 If you run into any problems with this, please open an issue!
 
 # Requirements
 
-- winetricks
 - Install the dependencies listed [here](https://github.com/lutris/docs/blob/master/WineDependencies.md). These dependencies are used for gaming on Linux through wine in general, so they're nice to have anyway.
 
 # Instructions
@@ -29,7 +29,7 @@ If you run into any problems with this, please open an issue!
 
 # Sources
 
-- Pre-compiled wine binary with ThePoon's patch applied. You can find this on his [discord server](https://discord.com/invite/ThePooN) in one of the [pinned messages](https://discord.com/channels/209933203782369281/457310786994307073/700594232292802590). - [Link](https://5124.mywire.org/HDD/Downloads/wine-osu-4.13-1-x86_64.pkg.tar.xz)
+- Pre-compiled wine binary with ThePoon's patch applied and a prebuilt wine prefix. You can find this [here](https://github.com/mrniceguy127/osu-wine-binary-and-prefix-generator/releases/download/7.0-02262022/wine-bin-and-prefix.tar.gz)
 - Official osu! branding icon - [Link](https://i.ppy.sh/916068c8e2d5f90be7766da5ce0ee7a7ea6c99b3/68747470733a2f2f6f73752e7070792e73682f68656c702f77696b692f4272616e645f6964656e746974795f67756964656c696e65732f696d672f75736167652d66756c6c2d636f6c6f75722e706e67)
 - wine-discord-ipc-bridge - [Link](https://github.com/0e4ef622/wine-discord-ipc-bridge/releases/download/v0.0.1/winediscordipcbridge.exe)
 - Official osu! installer - [Link](https://m1.ppy.sh/r/osu!install.exe)

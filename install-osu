@@ -18,19 +18,18 @@ WINE_RICH_PRESENCE_PATCH_BINARY_NAME="winediscordipcbridge.exe"
 
 # Sources
 # Source link is from ThePoon's Discord Server Pins: https://discord.com/channels/209933203782369281/457310786994307073/700594232292802590
-WINE_BINARY_SOURCE="https://5124.mywire.org/HDD/Downloads/wine-osu-4.13-1-x86_64.pkg.tar.xz"
-WINE_BINARY_DOWNLOAD_NAME="wine-osu-4.13-1-x86_64.pkg.tar.xz"
-WINE_BINARY_MD5_SUM="af08568c9580d43eebc7c62ddf795925  $WINE_BINARY_DOWNLOAD_NAME"
-WINE_BINARY_SHA_256_SUM="42d4ccbe7a8057d2b89d8c9b7aa6bd5baffc1e59498c1dad0d17ef90b36616b4  $WINE_BINARY_DOWNLOAD_NAME"
+WINE_PREBUILTS_SOURCE="https://github.com/mrniceguy127/osu-wine-binary-and-prefix-generator/releases/download/7.0-02262022/wine-bin-and-prefix.tar.gz"
+WINE_PREBUILTS_DOWNLOAD_NAME="wine-bin-and-prefix.tar.gz"
+WINE_PREBUILTS_MD5_SUM="7cb0688deaa023bbae1a661dc2f2e47e  $WINE_PREBUILTS_DOWNLOAD_NAME"
+WINE_PREBUILTS_SHA_256_SUM="d06e1c31fe6a50661f2ed5e47975d97b74b3fbee814adccc2e9e3ee3d695ceda  $WINE_PREBUILTS_DOWNLOAD_NAME"
 
 
 export WINEARCH=win32
 export WINEPREFIX="$OSU_WINE_DIR/WINE.win32"
 export WINE="$WINE_INSTALL_DIR/bin/wine"
 export WINESERVER="$WINE_INSTALL_DIR/bin/wineserver"
-export WINETRICKS="winetricks"
 
-OSU_DEFAULT_INSTALL_DIR="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!"
+#OSU_DEFAULT_INSTALL_DIR="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/osu!"
 OSU_USER_CONFIG="$OSU_GAME_FILES_DIR/osu!.$USER.cfg"
 
 
@@ -54,91 +53,77 @@ print_sect () {
 
 # Main
 
-check_for_command_exit_if_missing() {
-  CMD=$1
-  if ! command -v $CMD &> /dev/null ; then
-      error "$CMD not found. Please install it."
-      exit 1
+
+
+download_prebuilt_wine_binary_and_prefix() {
+  wget "$WINE_PREBUILTS_SOURCE" -O "$WINE_PREBUILTS_DOWNLOAD_NAME"
+
+  # Source validation
+  log "Validating source integrity..."
+  validate_md5_integrity
+  validate_sha_256_integrity
+
+  log "Extracting prebuilts..."
+  tar -xf "$WINE_PREBUILTS_DOWNLOAD_NAME"
+
+  log "Successfully downloaded wine prebuilts!"
+  rm "$WINE_PREBUILTS_DOWNLOAD_NAME"
+}
+
+
+install_wine() {
+  if [[ -e "$WINE_INSTALL_DIR" ]] ; then
+    log "Skipping installation of ThePoon's patched wine. Is it already installed?"
+  else
+    log "Installing ThePoon's patched wine to $WINE_INSTALL_DIR..."
+    mv "$PWD/out/wine-osu" "$WINE_INSTALL_DIR"
   fi
 }
 
-check_requirements() {
-  print_sect "Checking that requirements are met..."
-  log "Checking if winetricks is installed..."
-  check_for_command_exit_if_missing $WINETRICKS
+setup_prefix() {
+  if [[ -e "$WINEPREFIX" ]] ; then
+    log "Skipping installation of wine prefix. Does it already exist?"
+  else
+    log "Installing wine prefix to $WINEPREFIX..."
+    mv "$PWD/out/WINE.win32" "$WINEPREFIX"
+  fi
 }
 
+
 pre_install() {
-  check_requirements
+  rm -rf "$TMP_DIR"
   mkdir -p "$TMP_DIR"
   mkdir -p "$OSU_WINE_DIR"
   cd "$TMP_DIR" # Create tmp files here.
+  download_prebuilt_wine_binary_and_prefix
 }
 
 validate_md5_integrity() {
-  CORRECT_MD5_SUM="$1"
-
   log "Validating md5..."
-  echo "$WINE_BINARY_MD5_SUM" | md5sum -c
+  echo "$WINE_PREBUILTS_MD5_SUM" | md5sum -c
   if [[ $? == 0 ]] ; then
     log "Successfully validated md5 sum."
   else
     error "Failed to validate md5 sum! Exiting."
-    error "Expected: $WINE_BINARY_MD5_SUM"
-    error "Computed: $FOREIGN_MD5_SUM"
+    error "Expected: $WINE_PREBUILTS_MD5_SUM"
     exit 1
   fi
 }
 
 
 validate_sha_256_integrity() {
-  CORRECT_SHA_256_SUM="$1"
-
   log "Validating sha256..."
-  echo "$WINE_BINARY_SHA_256_SUM" | sha256sum -c
+  echo "$WINE_PREBUILTS_SHA_256_SUM" | sha256sum -c
   if [[ $? == 0 ]] ; then
     log "Successfully validated sha256 sum."
   else
     error "Failed to validate sha256 sum! Exiting."
-    error "Expected: $WINE_BINARY_SHA_256_SUM"
-    error "Computed: $FOREIGN_SHA_256_SUM"
+    error "Expected: $WINE_PREBUILTS_SHA_256_SUM"
     exit 1
   fi
 }
 
 
-# Note, this is installing a pre-compiled binary
-install_wine() {
-  print_sect "Installing ThePoon's Wine..."
-  if [[ -e "$WINE_INSTALL_DIR" ]] ; then
-    log "Skipping installation of ThePoon's wine. Is it already installed?"
-  else
-    if [[ ! -f "$WINE_BINARY_DOWNLOAD_NAME" ]] ; then
-      wget "$WINE_BINARY_SOURCE" -O "$WINE_BINARY_DOWNLOAD_NAME"
-    else
-      log "Skipping download, file exists."
-    fi
-
-    # Source validation
-    log "Validating source integrity..."
-    validate_md5_integrity "$WINE_BINARY_MD5_SUM"
-    validate_sha_256_integrity "$WINE_BINARY_SHA_256_SUM"
-
-    log "Installing ThePoon's wine to $WINE_INSTALL_DIR..."
-    tar -xf "$WINE_BINARY_DOWNLOAD_NAME"
-    mv "$PWD/opt/wine-osu" "$WINE_INSTALL_DIR"
-
-    log "Successfully installed ThePoon's wine!"
-    rm "$WINE_BINARY_DOWNLOAD_NAME"
-  fi
-}
-
-setup_prefix() {
-  mkdir -p "$WINEPREFIX"
-  print_sect "Creating WINEPREFIX..."
-  $WINETRICKS --force dotnet462
-  $WINETRICKS -q cjkfonts gdiplus
-}
 
 fix_osu_user_config() {
   log "Fixing audio compatibility..."
@@ -160,14 +145,12 @@ fix_osu_user_config() {
 
 create_osu_sym_links() {
   log "Creating handy osu symlinks..."
-  mv "$OSU_DEFAULT_INSTALL_DIR" "$OSU_GAME_FILES_DIR"
   if [[ -e "$OSU_DEFAULT_INSTALL_DIR" ]] ; then
     rm "$OSU_DEFAULT_INSTALL_DIR"
   fi
   if [[ -e "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION" ]] ; then
     rm "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION"
   fi
-  ln -sv "$OSU_GAME_FILES_DIR" "$OSU_DEFAULT_INSTALL_DIR"
   ln -sv "$OSU_GAME_FILES_DIR" "$OSU_GAME_FILES_DIR_SYMLINK_LOCATION"
 }
 
@@ -181,6 +164,10 @@ install_osu() {
     wget 'https://m1.ppy.sh/r/osu!install.exe'
   fi
 
+  mkdir -p "$OSU_GAME_FILES_DIR"
+  mv "osu!install.exe" "$OSU_GAME_FILES_DIR"
+  cd "$OSU_GAME_FILES_DIR"
+
   "$WINE" "osu!install.exe" &> /dev/null &
   OSU_INSTALLER_PID=$!
 
@@ -190,11 +177,12 @@ install_osu() {
 
   # I could NOT find a way to deal with this race condition without this stupid work around.
   while [[ ! -e "$OSU_USER_CONFIG" ]] ; do
-    sleep 10
+    sleep 20
     if [[ ! -e "$OSU_USER_CONFIG" ]] ; then
       $WINE "$OSU_GAME_FILES_DIR/osu!.exe" &> /dev/null
     fi
   done
+  cd "$TMP_DIR"
   fix_osu_user_config
 }
 
@@ -311,7 +299,7 @@ cleanup() {
 }
 
 install() {
-  print_sect "Installing... DO NOT install mono when asked."
+  print_sect "Installing..."
 
   pre_install
   install_wine
